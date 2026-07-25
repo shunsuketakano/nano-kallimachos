@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LaTeX \nocite Generator</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; max-width: 800px; margin: 40px auto; padding: 0 20px; line-height: 1.6; background-color: #f9f9f9; color: #333; }
+        .card { background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 20px; }
+        h1 { margin-top: 0; color: #2c3e50; font-size: 24px; border-bottom: 2px solid #eee; padding-bottom: 10px; }
+        .file-input-group { display: flex; flex-direction: column; margin-bottom: 20px; }
+        label { font-weight: bold; margin-bottom: 8px; color: #475569; }
+        input[type="file"] { padding: 10px; border: 2px dashed #cbd5e1; border-radius: 6px; cursor: pointer; background: #f8fafc; }
+        input[type="file"]:hover { border-color: #3b82f6; background: #eff6ff; }
+        button { background-color: #2563eb; color: white; border: none; padding: 12px 20px; font-size: 16px; border-radius: 6px; cursor: pointer; font-weight: bold; transition: background 0.2s; width: 100%; }
+        button:hover { background-color: #1d4ed8; }
+        button:disabled { background-color: #94a3b8; cursor: not-allowed; }
+        .result-area { margin-top: 25px; display: none; }
+        textarea { width: 100%; height: 80px; font-family: monospace; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box; background: #f1f5f9; resize: none; font-size: 14px; }
+        .download-btn { background-color: #059669; margin-top: 10px; }
+        .download-btn:hover { background-color: #047857; }
+        .info-box { background-color: #f0fdf4; border-left: 4px solid #16a34a; padding: 15px; border-radius: 4px; margin-top: 20px; font-size: 14px; }
+        .info-box ul { margin: 5px 0 0 0; padding-left: 20px; }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h1>LaTeX \nocite 生成ツール (Overleaf連携用)</h1>
+    <p style="font-size: 14px; color: #64748b;">※ファイルはサーバーに送信されません。すべてブラウザ内で安全に処理されます。</p>
+    
+    <div class="file-input-group">
+        <label for="auxFile">Overleafからダウンロードした「si.aux」を選択</label>
+        <input type="file" id="auxFile" accept=".aux">
+    </div>
+
+    <button id="processBtn" onclick="processAuxFile()">文献キーを抽出して.texを生成</button>
+
+    <div id="resultArea" class="result-area">
+        <label>生成された \nocite コード</label>
+        <textarea id="outputText" readonly></textarea>
+        
+        <button class="download-btn" onclick="downloadTexFile()">si_nocite.tex をダウンロード</button>
+
+        <div class="info-box">
+            <strong>次のステップ：</strong>
+            <ul>
+                <li>ダウンロードした <code>si_nocite.tex</code> をOverleafにアップロード（上書き）します。</li>
+                <li><code>main.tex</code> の本文中に <code>\input{si_nocite}</code> と書いておけば自動で反映されます。</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<script>
+    let generatedContent = "";
+
+    function processAuxFile() {
+        const fileInput = document.getElementById('auxFile');
+        const resultArea = document.getElementById('resultArea');
+        const outputText = document.getElementById('outputText');
+
+        if (!fileInput.files || fileInput.files.length === 0) {
+            alert('si.aux ファイルを選択してください。');
+            return;
+        }
+
+        const file = fileInput.files[0];
+        const reader = new FileReader();
+
+        reader.onload = function(e) {
+            const text = e.target.result;
+            
+            // \citation{...} の行を正規表現で探して抽出
+            const citationRegex = /\\citation\{([^}]+)\}/g;
+            let match;
+            let keys = [];
+
+            while ((match = citationRegex.exec(text)) !== null) {
+                // カンマ区切りのキーを分割してトリミング
+                const lineKeys = match[1].split(',').map(k => k.trim());
+                keys.push(...lineKeys);
+            }
+
+            // 重複の削除
+            const uniqueKeys = [...new Set(keys)];
+
+            if (uniqueKeys.length === 0) {
+                alert('si.aux から引用キーが見つかりませんでした。ファイルを再度確認してください。');
+                return;
+            }
+
+            // \nocite{...} 文字列の作成
+            const nociteString = `\\nocite{${uniqueKeys.join(',')}}`;
+            generatedContent = `% AUTO-GENERATED FILE FROM si.aux - DO NOT EDIT MANUALLY\n${nociteString}\n`;
+
+            // 画面に表示
+            outputText.value = nociteString;
+            resultArea.style.display = 'block';
+        };
+
+        reader.readAsText(file);
+    }
+
+    function downloadTexFile() {
+        if (!generatedContent) return;
+        
+        const blob = new Blob([generatedContent], { type: 'text/plain;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        
+        a.href = url;
+        a.download = 'si_nocite.tex';
+        document.body.appendChild(a);
+        a.click();
+        
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    }
+</script>
+
+</body>
+</html>
