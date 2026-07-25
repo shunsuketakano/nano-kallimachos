@@ -27,26 +27,43 @@
 
 <div class="card">
     <h1>nano-kallimachos</h1>
-    <p style="font-size: 14px; color: #64748b;">※LaTeX \nocite 生成ツール (Overleaf連携用)<br>※ファイルはサーバーに送信されません。すべてブラウザ内で安全に処理されます。</p>
-    
+
+    <p style="font-size: 14px; color: #64748b;">
+        This tool generates LaTeX <code>\nocite</code> commands for Overleaf.<br>
+        All processing is performed locally in your browser. Your files never leave your device.
+    </p>
+
+    <ol class="instructions">
+        <li>Recompile <code>si.tex</code> in Overleaf to generate <code>si.aux</code>.</li>
+        <li>Download the generated <code>si.aux</code> file.</li>
+        <li>Select or drag and drop <code>si.aux</code> below.</li>
+        <li>Generate <code>si_nocite.tex</code>.</li>
+    </ol>
+
     <div class="file-input-group">
-        <label for="auxFile">Overleafからダウンロードした「si.aux」を選択</label>
+        <label for="auxFile">
+            Select <code>si.aux</code>
+        </label>
         <input type="file" id="auxFile" accept=".aux">
     </div>
 
-    <button id="processBtn" onclick="processAuxFile()">文献キーを抽出して.texを生成</button>
+    <button id="processBtn" onclick="processAuxFile()">
+        Generate <code>si_nocite.tex</code>
+    </button>
 
     <div id="resultArea" class="result-area">
-        <label>生成された \nocite コード</label>
+        <label>Generated <code>\nocite</code> commands</label>
         <textarea id="outputText" readonly></textarea>
-        
-        <button class="download-btn" onclick="downloadTexFile()">si_nocite.tex をダウンロード</button>
+
+        <button class="download-btn" onclick="downloadTexFile()">
+            Download <code>si_nocite.tex</code>
+        </button>
 
         <div class="info-box">
-            <strong>次のステップ：</strong>
+            <strong>Next step</strong>
             <ul>
-                <li>ダウンロードした <code>si_nocite.tex</code> をOverleafにアップロード（上書き）します。</li>
-                <li><code>main.tex</code> の本文中に <code>\input{si_nocite}</code> と書いておけば自動で反映されます。</li>
+                <li>Upload and overwrite <code>si_nocite.tex</code> in Overleaf.</li>
+                <li>Add <code>\input{si_nocite}</code> to <code>main.tex</code>.</li>
             </ul>
         </div>
     </div>
